@@ -1,0 +1,11 @@
+# Ignore Python cache and virtual environment
+__pycache__/
+*.pyc
+venv/
+
+# Ignore password file
+Password/Password
+
+# Optional: ignore any other sensitive files
+*.key
+*.env
