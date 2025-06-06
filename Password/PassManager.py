@@ -1,6 +1,5 @@
 from cryptography.fernet import Fernet
 
-
 class PassManager:
 
     def __init__(self):
@@ -16,7 +15,7 @@ class PassManager:
     def load_key(self, path):
         with open(path, 'rb') as f:
             self.key = f.read()
-
+        print(self.key)
     def createFile(self, path, initial_value=None):
         self.passwordFile = path
 
@@ -25,18 +24,31 @@ class PassManager:
                 self.add_password(key, value)
 
     def load_password_file(self, path):
-        self.passwordFile = path
+     if not self.key:
+        raise ValueError("Encryption key not loaded. Use option 2 first.")
+    
+     self.passwordFile = path
 
-        with open(path, 'r') as f:
-            for line in f:
-                site, encrypted = line.split(":")
-                self.passwordDict[site] = Fernet(self.key).decrypt(encrypted.encode()).decode()
+     with open(path, 'r') as f:
+        for line in f:
+            line = line.strip()
+            if not line or ':' not in line:
+                continue
+            site, encrypted = line.split(":", 1)
+            try:
+                decrypted = Fernet(self.key).decrypt(encrypted.encode()).decode()
+                self.passwordDict[site] = decrypted
+            except Exception as e:
+                # print(self.key)
+                print(f"❌ Failed to decrypt password for '{site}': {e}")
+
 
     def add_password(self, site, password):
         self.passwordDict[site] = password
-
+        print(self.passwordFile)
         if self.passwordFile is not None:
             with open(self.passwordFile, 'a+') as f:
+                print(self.key)
                 encrypted = Fernet(self.key).encrypt(password.encode())
                 f.write(site + ":" + encrypted.decode() + "\n")
 
@@ -76,8 +88,8 @@ def main():
             path = input("Enter the path: ")
             pm.createFile(path, password)
         elif choice == "4":
-            path = input("Enter the path: ")
-            pm.load_password_file(path)
+              path = input("Enter the path: ")
+              pm.load_password_file(path)
         elif choice == "5":
             site = input("Enter site: ")
             paswrd = input("Enter the password: ")
